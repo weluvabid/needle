@@ -1,0 +1,23 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Web build output
+web/node_modules/
+web/dist/
+web/.vite/
+web/src/wasm/needle_wasm*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE and OS
+.idea/
+.vscode/
+.DS_Store
+
+# Logs and coverage
+*.log
+coverage/

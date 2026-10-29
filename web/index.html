@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10100f" />
+    <meta name="description" content="Needle is a tiny esoteric language that compiles to Brainfuck. Write, run, inspect, and unpick each stitch." />
+    <title>Needle — a little esoteric language</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="Needle home">
+          <span class="brand-mark" aria-hidden="true">⌁</span>
+          <span>needle<span class="brand-period">.</span></span>
+        </a>
+        <div class="topbar-meta"><span class="status-dot"></span><span>Rust · WebAssembly · TypeScript</span></div>
+        <a class="github-link" href="https://github.com/weluvabid/needle" target="_blank" rel="noreferrer">Source <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <main id="top" class="shell">
+        <section class="intro">
+          <div class="eyebrow"><span class="eyebrow-line"></span> A tiny language with a sharp point</div>
+          <h1>Make a little <em>stitch.</em></h1>
+          <p class="intro-copy">Needle is a readable esoteric language that compiles to Brainfuck. Poke the tape, run the thread, and unpick every step.</p>
+          <div class="command-key" aria-label="Needle commands">
+            <span><code>poke</code><small>+ cell</small></span>
+            <span><code>nick</code><small>− cell</small></span>
+            <span><code>next</code><small>→</small></span>
+            <span><code>back</code><small>←</small></span>
+            <span><code>loop</code><small>[</small></span>
+            <span><code>stitch</code><small>]</small></span>
+            <span><code>spill</code><small>output</small></span>
+            <span><code>snag</code><small>input</small></span>
+          </div>
+        </section>
+
+        <section class="toolbar" aria-label="Execution controls">
+          <div class="toolbar-left">
+            <button id="thread-button" class="button button-primary" type="button"><span aria-hidden="true">⌁</span> Thread It</button>
+            <button id="run-button" class="button button-run" type="button"><span aria-hidden="true">▶</span> Run the Needle</button>
+            <button id="pause-button" class="button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <button id="step-button" class="button" type="button" title="Execute one Needle operation"><span aria-hidden="true">▷|</span> One Stitch</button>
+            <button id="back-button" class="button button-icon" type="button" title="Unpick the previous operation" aria-label="Unpick previous operation" disabled>↶</button>
+            <button id="reset-button" class="button button-icon" type="button" title="Reset execution" aria-label="Reset execution">↺</button>
+          </div>
+          <div class="toolbar-right">
+            <label class="speed-control" for="speed-control">Pace
+              <select id="speed-control" aria-label="Execution pace">
+                <option value="slow">Careful</option>
+                <option value="steady" selected>Steady</option>
+                <option value="fast">Quick</option>
+              </select>
+            </label>
+            <span id="compile-status" class="status-label">Ready to thread</span>
+          </div>
+        </section>
+
+        <section class="workbench" aria-label="Needle editor and compiled program">
+          <article class="pane source-pane">
+            <div class="pane-header">
+              <div class="pane-title"><span class="file-icon">N</span><div><h2>Needle source</h2><p>source.needle</p></div></div>
+              <div class="pane-actions"><span id="source-count" class="mini-meta">0 lines</span><button id="clear-button" class="text-button" type="button">Clear</button></div>
+            </div>
+            <div class="editor-shell">
+              <div id="line-numbers" class="line-numbers" aria-hidden="true">1</div>
+              <div class="editor-code">
+                <pre id="source-highlight" aria-hidden="true"></pre>
+                <textarea id="source-editor" aria-label="Needle source editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"></textarea>
+              </div>
+            </div>
+            <div id="diagnostics" class="diagnostics" aria-live="polite"><span class="diagnostics-icon">✓</span><span>No loose threads.</span></div>
+          </article>
+
+          <article class="pane compiled-pane">
+            <div class="pane-header">
+              <div class="pane-title"><span class="file-icon file-icon-bf">BF</span><div><h2>Brainfuck</h2><p>compiled output</p></div></div>
+              <div class="pane-actions"><span id="bf-count" class="mini-meta">0 instructions</span><button id="copy-bf-button" class="text-button" type="button" disabled>Copy</button></div>
+            </div>
+            <div class="bf-shell">
+              <pre id="brainfuck-output" class="brainfuck-output" aria-label="Generated Brainfuck" tabindex="0"><span class="placeholder">Your compiled instructions will appear here.</span></pre>
+            </div>
+            <div class="mapping-footer"><span class="mapping-key"></span><span>Highlighted instructions map to the active Needle operation.</span></div>
+          </article>
+        </section>
+
+        <section class="lower-grid">
+          <article class="pane inspector-pane">
+            <div class="pane-header">
+              <div class="pane-title"><span class="section-mark">01</span><div><h2>The fabric</h2><p>live memory tape</p></div></div>
+              <span id="pointer-label" class="small-pill">pointer: 0</span>
+            </div>
+            <div id="tape-view" class="tape-view" aria-label="Tape cells"><div class="empty-state">Run a stitch to inspect the tape.</div></div>
+            <div class="tape-legend"><span><i class="legend-current"></i> active cell</span><span><i class="legend-zero"></i> empty cell</span></div>
+          </article>
+
+          <article class="pane output-pane">
+            <div class="pane-header">
+              <div class="pane-title"><span class="section-mark">02</span><div><h2>The spill</h2><p>program output · bytes</p></div></div>
+              <span id="output-count" class="small-pill">0 bytes</span>
+            </div>
+            <pre id="program-output" class="program-output" aria-live="polite">Nothing spilled yet.</pre>
+            <div class="input-area">
+              <label for="program-input">Input for <code>snag</code></label>
+              <textarea id="program-input" rows="2" spellcheck="false" placeholder="Bytes read by snag, in order…"></textarea>
+            </div>
+          </article>
+        </section>
+
+        <section class="execution-footer">
+          <div class="execution-stat"><span class="stat-label">STATE</span><strong id="state-value">Ready</strong></div>
+          <div class="execution-stat"><span class="stat-label">INSTRUCTION</span><strong id="instruction-value">—</strong></div>
+          <div class="execution-stat"><span class="stat-label">CELL VALUE</span><strong id="cell-value">0 <small>/ 255</small></strong></div>
+          <div class="execution-stat"><span class="stat-label">STEPS USED</span><strong id="steps-value">0 <small>/ 1,000,000</small></strong></div>
+          <div class="execution-stat execution-stat-wide"><span class="stat-label">EXECUTION BUDGET</span><div class="budget-track"><span id="budget-bar"></span></div></div>
+        </section>
+
+        <footer class="page-footer"><span>Small language. Short thread.</span><span>Counts are compile-time repetition · cells wrap at 8 bits · EOF leaves the cell unchanged.</span></footer>
+      </main>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

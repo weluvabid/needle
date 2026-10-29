@@ -1,0 +1,17 @@
+[package]
+name = "needle-core"
+description = "The browser-independent compiler and reference interpreter for Needle"
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[lib]
+name = "needle_core"
+path = "src/lib.rs"
+
+[dependencies]
+serde.workspace = true
+
+[lints]
+workspace = true
