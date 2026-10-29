@@ -11,6 +11,14 @@ const COMMANDS: [&str; 8] = [
     "poke", "nick", "next", "back", "loop", "stitch", "spill", "snag",
 ];
 
+#[derive(Clone, Copy)]
+enum CountedCommand {
+    Poke,
+    Nick,
+    Next,
+    Back,
+}
+
 /// Tokenize and parse source into a validated program.
 pub fn parse(source: &str) -> Result<Program, Vec<Diagnostic>> {
     if source.len() > MAX_SOURCE_BYTES {
@@ -53,15 +61,17 @@ struct Parser {
 impl Parser {
     fn run(&mut self) {
         while self.position < self.tokens.len() {
-            let token = self.tokens[self.position].clone();
+            let token_span = self.tokens[self.position].span;
+            let token_kind =
+                std::mem::replace(&mut self.tokens[self.position].kind, TokenKind::Number(0));
             self.position += 1;
-            match token.kind {
+            match token_kind {
                 TokenKind::Number(_) => self.diagnostics.push(Diagnostic::error(
                     DiagnosticCode::UnexpectedNumber,
                     "A number needs a command to stitch it to.",
-                    token.span,
+                    token_span,
                 )),
-                TokenKind::Word(word) => self.command(word, token.span),
+                TokenKind::Word(word) => self.command(word, token_span),
             }
         }
 
@@ -77,15 +87,17 @@ impl Parser {
 
     fn command(&mut self, word: String, word_span: SourceSpan) {
         match word.as_str() {
-            "poke" => self.counted(word_span, Operation::Poke { count: 1 }),
-            "nick" => self.counted(word_span, Operation::Nick { count: 1 }),
-            "next" => self.counted(word_span, Operation::Next { count: 1 }),
-            "back" => self.counted(word_span, Operation::Back { count: 1 }),
+            "poke" => self.counted(word_span, CountedCommand::Poke),
+            "nick" => self.counted(word_span, CountedCommand::Nick),
+            "next" => self.counted(word_span, CountedCommand::Next),
+            "back" => self.counted(word_span, CountedCommand::Back),
             "loop" => {
                 self.reject_count_after(&word, word_span);
                 let index = self.instructions.len();
                 self.instructions.push(Instruction {
-                    operation: Operation::LoopStart { partner: usize::MAX },
+                    operation: Operation::LoopStart {
+                        partner: usize::MAX,
+                    },
                     span: word_span,
                 });
                 self.loop_stack.push(index);
@@ -98,7 +110,9 @@ impl Parser {
                         partner: close_index,
                     };
                     self.instructions.push(Instruction {
-                        operation: Operation::LoopEnd { partner: open_index },
+                        operation: Operation::LoopEnd {
+                            partner: open_index,
+                        },
                         span: word_span,
                     });
                 } else {
@@ -137,7 +151,7 @@ impl Parser {
         }
     }
 
-    fn counted(&mut self, word_span: SourceSpan, default: Operation) {
+    fn counted(&mut self, word_span: SourceSpan, command: CountedCommand) {
         let count_token = self.tokens.get(self.position).and_then(|token| {
             if token.span.line != word_span.end_line {
                 return None;
@@ -169,29 +183,34 @@ impl Parser {
             1
         };
 
-        let operation = match default {
-            Operation::Poke { .. } => Operation::Poke { count },
-            Operation::Nick { .. } => Operation::Nick { count },
-            Operation::Next { .. } => Operation::Next { count },
-            Operation::Back { .. } => Operation::Back { count },
-            _ => unreachable!("only counted operations reach counted()"),
+        let operation = match command {
+            CountedCommand::Poke => Operation::Poke { count },
+            CountedCommand::Nick => Operation::Nick { count },
+            CountedCommand::Next => Operation::Next { count },
+            CountedCommand::Back => Operation::Back { count },
         };
         self.instructions.push(Instruction { operation, span });
     }
 
     fn reject_count_after(&mut self, word: &str, word_span: SourceSpan) {
-        if let Some(Token { kind: TokenKind::Number(_), span }) = self
+        if let Some(Token {
+            kind: TokenKind::Number(_),
+            span,
+        }) = self
             .tokens
             .get(self.position)
             .filter(|token| token.span.line == word_span.end_line)
         {
             let span = *span;
             self.position += 1;
-            self.diagnostics.push(Diagnostic::error(
-                DiagnosticCode::UnexpectedNumber,
-                format!("`{word}` doesn't take a count; its syntax is already stitched."),
-                span,
-            ).with_hint(format!("Remove the number after `{word}`.")));
+            self.diagnostics.push(
+                Diagnostic::error(
+                    DiagnosticCode::UnexpectedNumber,
+                    format!("`{word}` doesn't take a count; its syntax is already stitched."),
+                    span,
+                )
+                .with_hint(format!("Remove the number after `{word}`.")),
+            );
         }
     }
 }

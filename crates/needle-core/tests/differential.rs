@@ -1,3 +1,6 @@
+//! Differential tests comparing Needle execution with an independent
+//! Brainfuck interpreter to verify that compilation preserves program behavior.
+
 use needle_core::{ExecutionLimits, ExecutionSession, ExecutionStatus, Program, compile};
 
 #[derive(Debug)]
@@ -67,7 +70,12 @@ fn run_brainfuck(code: &str, input: &[u8]) -> BrainfuckResult {
         }
         ip += 1;
     }
-    BrainfuckResult { tape, pointer, input_cursor, output }
+    BrainfuckResult {
+        tape,
+        pointer,
+        input_cursor,
+        output,
+    }
 }
 
 fn run_needle(program: Program, input: &[u8]) -> NeedleResult {
@@ -90,14 +98,22 @@ fn assert_equivalent(source: &str, input: &[u8]) {
     let interpreted = run_needle(compiled.program, input);
     let generated = run_brainfuck(&compiled.brainfuck, input);
 
-    assert_eq!(interpreted.output, generated.output, "output mismatch for {source}");
-    assert_eq!(interpreted.pointer, generated.pointer, "pointer mismatch for {source}");
-    assert_eq!(interpreted.input_cursor, generated.input_cursor, "input mismatch for {source}");
+    assert_eq!(
+        interpreted.output, generated.output,
+        "output mismatch for {source}"
+    );
+    assert_eq!(
+        interpreted.pointer, generated.pointer,
+        "pointer mismatch for {source}"
+    );
+    assert_eq!(
+        interpreted.input_cursor, generated.input_cursor,
+        "input mismatch for {source}"
+    );
     for (index, value) in interpreted.tape_window.iter().enumerate() {
         let tape_index = interpreted.tape_window_start + index;
         assert_eq!(
-            *value,
-            generated.tape[tape_index],
+            *value, generated.tape[tape_index],
             "tape mismatch for {source} at {tape_index}"
         );
     }

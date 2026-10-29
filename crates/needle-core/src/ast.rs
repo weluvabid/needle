@@ -16,18 +16,36 @@ pub struct Instruction {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(tag = "op", rename_all = "camelCase")]
 pub enum Operation {
-    /// Increment the current 8-bit cell `count` times.
-    Poke { count: u32 },
-    /// Decrement the current 8-bit cell `count` times.
-    Nick { count: u32 },
-    /// Move the pointer right `count` cells.
-    Next { count: u32 },
-    /// Move the pointer left `count` cells.
-    Back { count: u32 },
-    /// Open a loop; `partner` is the matching `stitch` instruction index.
-    LoopStart { partner: usize },
-    /// Close a loop; `partner` is the matching `loop` instruction index.
-    LoopEnd { partner: usize },
+    /// Increment the current 8-bit cell.
+    Poke {
+        /// Number of increments, within the supported count range.
+        count: u32,
+    },
+    /// Decrement the current 8-bit cell.
+    Nick {
+        /// Number of decrements, within the supported count range.
+        count: u32,
+    },
+    /// Move the pointer right.
+    Next {
+        /// Number of cells to move, within the supported count range.
+        count: u32,
+    },
+    /// Move the pointer left.
+    Back {
+        /// Number of cells to move, within the supported count range.
+        count: u32,
+    },
+    /// Open a loop.
+    LoopStart {
+        /// Index of the matching `stitch` instruction.
+        partner: usize,
+    },
+    /// Close a loop.
+    LoopEnd {
+        /// Index of the matching `loop` instruction.
+        partner: usize,
+    },
     /// Write the current cell as one byte.
     Spill,
     /// Read one byte into the current cell; EOF leaves the cell unchanged.

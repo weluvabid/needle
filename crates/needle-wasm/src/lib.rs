@@ -1,7 +1,10 @@
+//! WebAssembly bindings exposing Needle parsing, compilation, and execution
+//! to the browser-based playground.
+
 use js_sys::Uint8Array;
 use needle_core::{
-    Diagnostic, ExecutionLimits, ExecutionSession, ExecutionSnapshot, Program, RuntimeError,
-    SourceMapping, compile, parse, MAX_INPUT_BYTES,
+    Diagnostic, ExecutionLimits, ExecutionSession, ExecutionSnapshot, MAX_INPUT_BYTES, Program,
+    RuntimeError, SourceMapping, compile, parse,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -80,7 +83,10 @@ impl WasmSession {
     #[wasm_bindgen(js_name = stepBackward)]
     pub fn step_backward(&mut self) -> JsValue {
         let changed = self.inner.step_backward();
-        serialize(&UndoResponse { changed, state: self.inner.inspect() })
+        serialize(&UndoResponse {
+            changed,
+            state: self.inner.inspect(),
+        })
     }
 
     /// Inspect current interpreter state without copying the accumulated output.

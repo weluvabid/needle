@@ -70,13 +70,15 @@ pub fn compile(source: &str) -> Result<Compilation, Vec<Diagnostic>> {
     })?;
 
     let mut source_map = Vec::new();
-    source_map.try_reserve_exact(program.instructions.len()).map_err(|_| {
-        vec![Diagnostic::error(
-            DiagnosticCode::AllocationFailed,
-            "Needle couldn't reserve memory for the source map.",
-            SourceSpan::point(),
-        )]
-    })?;
+    source_map
+        .try_reserve_exact(program.instructions.len())
+        .map_err(|_| {
+            vec![Diagnostic::error(
+                DiagnosticCode::AllocationFailed,
+                "Needle couldn't reserve memory for the source map.",
+                SourceSpan::point(),
+            )]
+        })?;
 
     for instruction in &program.instructions {
         let generated_start = brainfuck.len();
@@ -106,7 +108,11 @@ pub fn compile(source: &str) -> Result<Compilation, Vec<Diagnostic>> {
     }
 
     debug_assert_eq!(brainfuck.len(), generated_len);
-    Ok(Compilation { brainfuck, source_map, program })
+    Ok(Compilation {
+        brainfuck,
+        source_map,
+        program,
+    })
 }
 
 fn emit_repeated(

@@ -116,7 +116,11 @@ pub struct RuntimeError {
 
 impl RuntimeError {
     fn new(code: RuntimeErrorCode, message: impl Into<String>, span: Option<SourceSpan>) -> Self {
-        Self { code, message: message.into(), span }
+        Self {
+            code,
+            message: message.into(),
+            span,
+        }
     }
 }
 
@@ -307,8 +311,11 @@ impl ExecutionSession {
                 self.instruction_pointer += 1;
             }
             Operation::Next { count } => {
-                let next = self.data_pointer.checked_add(count as usize);
-                if next.is_none_or(|value| value >= self.tape.len()) {
+                let next = self
+                    .data_pointer
+                    .checked_add(count as usize)
+                    .filter(|&value| value < self.tape.len());
+                let Some(next) = next else {
                     let error = RuntimeError::new(
                         RuntimeErrorCode::PointerOutOfBounds,
                         "Off the fabric: `next` moved the data pointer past the tape.",
@@ -316,8 +323,8 @@ impl ExecutionSession {
                     );
                     self.fail(error.clone());
                     return Err(error);
-                }
-                self.data_pointer = next.unwrap_or(self.data_pointer);
+                };
+                self.data_pointer = next;
                 self.instruction_pointer += 1;
             }
             Operation::Back { count } => {
@@ -406,7 +413,10 @@ impl ExecutionSession {
         let budget = max_steps.min(MAX_BATCH_STEPS);
         let mut executed = 0;
         while executed < budget {
-            if !matches!(self.status, ExecutionStatus::Ready | ExecutionStatus::Running) {
+            if !matches!(
+                self.status,
+                ExecutionStatus::Ready | ExecutionStatus::Running
+            ) {
                 break;
             }
             match self.step_forward() {
@@ -468,7 +478,9 @@ impl ExecutionSession {
 
     /// Copy only the requested output tail, useful for incremental UI updates.
     pub fn output_bytes_from(&self, start: usize) -> &[u8] {
-        self.output.get(start.min(self.output.len())..).unwrap_or_default()
+        self.output
+            .get(start.min(self.output.len())..)
+            .unwrap_or_default()
     }
 
     /// Reset the interpreter to the initial state while preserving source and input.
@@ -541,7 +553,9 @@ fn validate_program(program: &Program) -> Result<(), RuntimeError> {
             Operation::Poke { count }
             | Operation::Nick { count }
             | Operation::Next { count }
-            | Operation::Back { count } if !(1..=MAX_COUNT).contains(count) => {
+            | Operation::Back { count }
+                if !(1..=MAX_COUNT).contains(count) =>
+            {
                 return Err(RuntimeError::new(
                     RuntimeErrorCode::InvalidProgram,
                     "A counted instruction is outside Needle's supported range.",
@@ -564,14 +578,13 @@ fn validate_program(program: &Program) -> Result<(), RuntimeError> {
                 }
                 loop_stack.push(index);
             }
-            Operation::LoopEnd { partner }
-                if loop_stack.pop() != Some(*partner) => {
-                    return Err(RuntimeError::new(
-                        RuntimeErrorCode::InvalidProgram,
-                        "Loop pairs are not correctly nested.",
-                        Some(span),
-                    ));
-                }
+            Operation::LoopEnd { partner } if loop_stack.pop() != Some(*partner) => {
+                return Err(RuntimeError::new(
+                    RuntimeErrorCode::InvalidProgram,
+                    "Loop pairs are not correctly nested.",
+                    Some(span),
+                ));
+            }
             _ => {}
         }
     }
@@ -615,7 +628,11 @@ mod tests {
 
     #[test]
     fn reverse_restores_tape_pointer_and_output() {
-        let mut vm = session("poke 5\nnext\npoke 8\nspill", &[], ExecutionLimits::default());
+        let mut vm = session(
+            "poke 5\nnext\npoke 8\nspill",
+            &[],
+            ExecutionLimits::default(),
+        );
         vm.run_steps(10);
         assert_eq!(vm.output_bytes_from(0), &[8]);
         assert!(vm.step_backward());
@@ -632,17 +649,25 @@ mod tests {
     #[test]
     fn pointer_failure_is_structured() {
         let mut vm = session("back", &[], ExecutionLimits::default());
-        let error = vm.step_forward().expect_err("pointer underflow should fail");
+        let error = vm
+            .step_forward()
+            .expect_err("pointer underflow should fail");
         assert_eq!(error.code, RuntimeErrorCode::PointerOutOfBounds);
         assert_eq!(vm.status(), ExecutionStatus::Failed);
         assert!(!vm.step_backward());
         assert_eq!(vm.status(), ExecutionStatus::Failed);
-        assert_eq!(vm.inspect().last_error.unwrap().code, RuntimeErrorCode::PointerOutOfBounds);
+        assert_eq!(
+            vm.inspect().last_error.unwrap().code,
+            RuntimeErrorCode::PointerOutOfBounds
+        );
     }
 
     #[test]
     fn execution_budget_is_monotonic_across_rewind() {
-        let limits = ExecutionLimits { max_instructions: 3, ..ExecutionLimits::default() };
+        let limits = ExecutionLimits {
+            max_instructions: 3,
+            ..ExecutionLimits::default()
+        };
         let mut vm = session("poke\nnext\nback\nspill", &[], limits);
         assert_eq!(vm.run_steps(100), 3);
         assert_eq!(vm.status(), ExecutionStatus::Failed);
@@ -659,7 +684,9 @@ mod tests {
         let program = Program {
             source_len: 4,
             instructions: vec![Instruction {
-                operation: Operation::LoopStart { partner: usize::MAX },
+                operation: Operation::LoopStart {
+                    partner: usize::MAX,
+                },
                 span: SourceSpan::new(0, 4, 1, 1, 1, 5),
             }],
         };
@@ -669,17 +696,27 @@ mod tests {
 
     #[test]
     fn output_limit_is_enforced() {
-        let limits = ExecutionLimits { max_output_bytes: 1, ..ExecutionLimits::default() };
+        let limits = ExecutionLimits {
+            max_output_bytes: 1,
+            ..ExecutionLimits::default()
+        };
         let mut vm = session("spill\nspill", &[], limits);
         assert_eq!(vm.run_steps(10), 1);
         assert_eq!(vm.output_len(), 1);
         assert_eq!(vm.status(), ExecutionStatus::Failed);
-        assert_eq!(vm.inspect().last_error.unwrap().code, RuntimeErrorCode::OutputLimitExceeded);
+        assert_eq!(
+            vm.inspect().last_error.unwrap().code,
+            RuntimeErrorCode::OutputLimitExceeded
+        );
     }
 
     #[test]
     fn reversing_input_restores_cursor_and_cell() {
-        let mut vm = session("snag\nspill", &[0xE2, 0x98, 0x83], ExecutionLimits::default());
+        let mut vm = session(
+            "snag\nspill",
+            &[0xE2, 0x98, 0x83],
+            ExecutionLimits::default(),
+        );
         assert!(vm.step_forward().unwrap());
         assert_eq!(vm.inspect().input_cursor, 1);
         assert_eq!(vm.inspect().current_cell, 0xE2);
@@ -693,7 +730,10 @@ mod tests {
 
     #[test]
     fn invalid_limits_are_rejected() {
-        let limits = ExecutionLimits { max_trace_entries: 0, ..ExecutionLimits::default() };
+        let limits = ExecutionLimits {
+            max_trace_entries: 0,
+            ..ExecutionLimits::default()
+        };
         let program = parse("poke").unwrap();
         let result = ExecutionSession::new(program, Vec::new(), limits);
         assert!(matches!(
