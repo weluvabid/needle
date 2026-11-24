@@ -4,7 +4,7 @@ Needle is a witty little esoteric programming language that compiles to Brainfuc
 
 ## Features
 
-- A deliberately small source language with eight commands.
+- A small source language with eight commands.
 - A Rust frontend and direct Brainfuck compiler with source mappings.
 - A browser-independent reference interpreter with fixed, explicit execution limits.
 - Reversible single-step execution backed by bounded deltas instead of full tape snapshots.
@@ -53,8 +53,6 @@ Counts are optional for `poke`, `nick`, `next`, and `back`; a missing count mean
 - Reversible history: retains up to 100,000 operations by default, with a hard maximum of 250,000. Older deltas are evicted first.
 - One step executes one Needle source operation. A counted operation is atomic and counts as one Needle step; the compiler emits the repeated Brainfuck operations.
 - Rewinding does not refund the session's cumulative execution budget.
-
-These rules are Needle's contract rather than implementation-dependent Brainfuck behavior. Differential equivalence is expected for programs that finish within the defined model; failure state details for programs that attempt to leave the tape are Needle-specific.
 
 ## Repository layout
 
