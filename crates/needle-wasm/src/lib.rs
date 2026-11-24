@@ -76,29 +76,12 @@ impl WasmSession {
             .map_err(|error| serialize(&error))
     }
 
-    /// Execute one source operation and return the compact post-step snapshot.
-    #[wasm_bindgen(js_name = stepForward)]
-    pub fn step_forward(&mut self) -> JsValue {
-        let _ = self.inner.step_forward();
-        serialize(&self.inner.inspect())
-    }
-
     /// Execute a bounded batch of source operations and return state.
     #[wasm_bindgen(js_name = runSteps)]
     pub fn run_steps(&mut self, max_steps: u32) -> JsValue {
         let executed_this_batch = self.inner.run_steps(max_steps as usize);
         serialize(&RunResponse {
             executed_this_batch,
-            state: self.inner.inspect(),
-        })
-    }
-
-    /// Undo the most recent retained successful operation and return state.
-    #[wasm_bindgen(js_name = stepBackward)]
-    pub fn step_backward(&mut self) -> JsValue {
-        let changed = self.inner.step_backward();
-        serialize(&UndoResponse {
-            changed,
             state: self.inner.inspect(),
         })
     }
@@ -125,13 +108,6 @@ impl WasmSession {
 #[serde(rename_all = "camelCase")]
 struct RunResponse {
     executed_this_batch: usize,
-    state: ExecutionSnapshot,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct UndoResponse {
-    changed: bool,
     state: ExecutionSnapshot,
 }
 

@@ -1,13 +1,15 @@
 # Needle 🪡
 
-Needle is a witty little esoteric programming language that compiles to Brainfuck. Poke, nick, stitch, and spill your way through a tiny language with a compiler, reference interpreter, and interactive playground featuring bidirectional stepping and source mapping.
+[Open the live playground](https://weluvabid.github.io/needle/).
+
+Needle is a witty little esoteric programming language that compiles to Brainfuck. Poke, nick, stitch, and spill your way through a tiny language with a compiler, reference interpreter, and browser playground with source mapping and runtime inspection.
 
 ## Features
 
 - A small source language with eight commands.
 - A Rust frontend and direct Brainfuck compiler with source mappings.
 - A browser-independent reference interpreter with fixed, explicit execution limits.
-- Reversible single-step execution backed by bounded deltas instead of full tape snapshots.
+- A reference interpreter with reversible single-step execution backed by bounded deltas instead of full tape snapshots.
 - A compact Rust/WebAssembly program runner with curated execution and compiler stress examples.
 - Runtime inspection for memory, output bytes, and execution metrics, with execution isolated in a Web Worker.
 - Differential tests that compare the reference interpreter with an independent Brainfuck test runner.
@@ -68,7 +70,7 @@ scripts/check.sh  Formatting, core Clippy, and native core tests
 
 ## Development
 
-Requirements: stable Rust with `rustfmt` and `clippy`, `wasm32-unknown-unknown`, `wasm-pack`, and Node.js 22 with npm.
+Requirements: stable Rust with `rustfmt` and `clippy`, `wasm32-unknown-unknown`, `wasm-pack`, and Node.js 26 with npm.
 
 From the repository root:
 
@@ -82,6 +84,8 @@ npm run dev
 ```
 
 Open the local URL printed by Vite. The playground loads curated Needle programs and runs the compiler and reference interpreter through WebAssembly in a Web Worker. It exposes the selected program's output, memory tape, and execution metrics without requiring an editor. The core itself has no browser dependencies and is tested natively. The WASM adapter is compiled for `wasm32-unknown-unknown` as part of `npm run build`.
+
+GitHub Actions deploys the production playground to GitHub Pages when changes are pushed to `main`.
 
 For a production web build:
 
@@ -107,4 +111,4 @@ cargo test -p needle-core
 MIT. See [LICENSE](LICENSE).
 
 
-The playground offers four execution budgets: Careful (1 million source instructions), Steady (10 million), Fast (60 million), and Maximum (100 million). The selected pace also controls the size and delay of worker execution batches.
+The playground offers five execution budgets: Very Careful (100 thousand source instructions), Careful (1 million), Steady (10 million), Fast (60 million), and Maximum (100 million). The selected pace controls the execution budget and worker batch size and delay. The pace can be changed while a program is running.

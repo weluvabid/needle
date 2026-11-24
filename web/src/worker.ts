@@ -40,17 +40,6 @@ async function handleRequest(request: WorkerRequest): Promise<void> {
       publishState(session.inspect() as ExecutionSnapshot);
       return;
     }
-    case "stepForward": {
-      if (!session) return;
-      publishState(session.stepForward() as ExecutionSnapshot);
-      return;
-    }
-    case "stepBackward": {
-      if (!session) return;
-      const result = session.stepBackward() as { changed: boolean; state: ExecutionSnapshot };
-      publishState(result.state);
-      return;
-    }
     case "runBatch": {
       if (!session) return;
       const result = session.runSteps(request.maxSteps ?? 500) as { executedThisBatch: number; state: ExecutionSnapshot };

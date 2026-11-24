@@ -3,9 +3,7 @@ declare module "*.js" {
     free(): void;
     constructor(source: string, input: Uint8Array, maxInstructions: number);
     setMaxInstructions(maxInstructions: number): void;
-    stepForward(): unknown;
     runSteps(maxSteps: number): unknown;
-    stepBackward(): unknown;
     inspect(): unknown;
     outputBytesFrom(start: number): Uint8Array;
     reset(): unknown;
