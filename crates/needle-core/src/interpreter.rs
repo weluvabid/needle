@@ -16,7 +16,7 @@ pub const MAX_BATCH_STEPS: usize = 100_000;
 pub const TAPE_WINDOW_RADIUS: usize = 8;
 const DEFAULT_TAPE_CELLS: usize = 30_000;
 const MAX_TAPE_CELLS: usize = 1_000_000;
-const DEFAULT_MAX_INSTRUCTIONS: u64 = 1_000_000;
+const DEFAULT_MAX_INSTRUCTIONS: u64 = 100_000_000;
 const MAX_INSTRUCTIONS: u64 = 100_000_000;
 const DEFAULT_MAX_OUTPUT_BYTES: usize = 1024 * 1024;
 const DEFAULT_MAX_TRACE_ENTRIES: usize = 100_000;
@@ -408,6 +408,15 @@ impl ExecutionSession {
         Ok(true)
     }
 
+    /// Update the maximum number of source operations allowed in this session.
+    pub fn set_max_instructions(&mut self, max_instructions: u64) -> Result<(), RuntimeError> {
+        let mut limits = self.limits.clone();
+        limits.max_instructions = max_instructions;
+        limits.validate()?;
+        self.limits = limits;
+        Ok(())
+    }
+
     /// Execute at most `max_steps` source operations and return the number executed in this batch.
     pub fn run_steps(&mut self, max_steps: usize) -> usize {
         let budget = max_steps.min(MAX_BATCH_STEPS);
@@ -660,6 +669,29 @@ mod tests {
             vm.inspect().last_error.unwrap().code,
             RuntimeErrorCode::PointerOutOfBounds
         );
+    }
+
+    #[test]
+    fn execution_budget_can_be_increased_without_recreating_the_session() {
+        let limits = ExecutionLimits {
+            max_instructions: 2,
+            ..ExecutionLimits::default()
+        };
+        let mut vm = session("poke\\npoke\\npoke\\nspill", &[], limits);
+        assert_eq!(vm.run_steps(10), 2);
+        assert_eq!(vm.status(), ExecutionStatus::Failed);
+
+        vm.reset();
+        vm.set_max_instructions(4).expect("valid expanded budget");
+        assert_eq!(vm.run_steps(10), 4);
+        assert_eq!(vm.output_bytes_from(0), &[3]);
+        assert_eq!(vm.status(), ExecutionStatus::Halted);
+    }
+
+    #[test]
+    fn invalid_dynamic_execution_budget_is_rejected() {
+        let mut vm = session("poke", &[], ExecutionLimits::default());
+        assert!(vm.set_max_instructions(0).is_err());
     }
 
     #[test]

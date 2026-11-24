@@ -8,7 +8,8 @@ Needle is a witty little esoteric programming language that compiles to Brainfuc
 - A Rust frontend and direct Brainfuck compiler with source mappings.
 - A browser-independent reference interpreter with fixed, explicit execution limits.
 - Reversible single-step execution backed by bounded deltas instead of full tape snapshots.
-- A Rust/WebAssembly adapter and TypeScript playground running execution in a Web Worker.
+- A compact Rust/WebAssembly program runner with curated execution and compiler stress examples.
+- Runtime inspection for memory, output bytes, and execution metrics, with execution isolated in a Web Worker.
 - Differential tests that compare the reference interpreter with an independent Brainfuck test runner.
 
 ## Language at a glance
@@ -44,11 +45,11 @@ Counts are optional for `poke`, `nick`, `next`, and `back`; a missing count mean
 - Cell arithmetic: wraps modulo 256.
 - Pointer: starts at cell zero; moving outside the tape fails with a source-located runtime error. A counted move is checked atomically before it changes the pointer.
 - Input: UTF-8 bytes supplied to the playground; `snag` consumes one byte. EOF leaves the current cell unchanged.
-- Output: `spill` appends the current cell as one byte. The playground displays output decoded as UTF-8 with replacement characters for invalid sequences.
+- Output: `spill` appends the current cell as one byte. The playground exposes the output as ASCII, hexadecimal, and decimal byte views.
 - Source size: at most 256 KiB.
 - Generated Brainfuck: at most 1,000,000 instructions.
 - Input and output: at most 1 MiB each.
-- Execution budget: 1,000,000 successfully executed Needle operations per session.
+- Execution budget: 100,000,000 successfully executed Needle operations per session.
 - Tape configuration: hard maximum of 1,000,000 cells.
 - Reversible history: retains up to 100,000 operations by default, with a hard maximum of 250,000. Older deltas are evicted first.
 - One step executes one Needle source operation. A counted operation is atomic and counts as one Needle step; the compiler emits the repeated Brainfuck operations.
@@ -80,7 +81,7 @@ npm run check
 npm run dev
 ```
 
-Open the local URL printed by Vite. The playground runs the compiler and reference interpreter through WebAssembly in a Web Worker. The core itself has no browser dependencies and is tested natively. The WASM adapter is compiled for `wasm32-unknown-unknown` as part of `npm run build`.
+Open the local URL printed by Vite. The playground loads curated Needle programs and runs the compiler and reference interpreter through WebAssembly in a Web Worker. It exposes the selected program's output, memory tape, and execution metrics without requiring an editor. The core itself has no browser dependencies and is tested natively. The WASM adapter is compiled for `wasm32-unknown-unknown` as part of `npm run build`.
 
 For a production web build:
 
@@ -104,3 +105,6 @@ cargo test -p needle-core
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+
+The playground offers four execution budgets: Careful (1 million source instructions), Steady (10 million), Fast (60 million), and Maximum (100 million). The selected pace also controls the size and delay of worker execution batches.

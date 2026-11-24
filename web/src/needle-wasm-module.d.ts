@@ -1,7 +1,8 @@
 declare module "*.js" {
   export class WasmSession {
     free(): void;
-    constructor(source: string, input: Uint8Array);
+    constructor(source: string, input: Uint8Array, maxInstructions: number);
+    setMaxInstructions(maxInstructions: number): void;
     stepForward(): unknown;
     runSteps(maxSteps: number): unknown;
     stepBackward(): unknown;

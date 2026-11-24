@@ -54,10 +54,11 @@ export type ExecutionSnapshot = {
 };
 
 export type WorkerRequest =
-  | { type: "compile"; source: string; input: string }
+  | { type: "compile"; source: string; input: string; maxInstructions: number }
   | { type: "stepForward" }
   | { type: "stepBackward" }
   | { type: "runBatch"; maxSteps?: number }
+  | { type: "setBudget"; maxInstructions: number }
   | { type: "reset" };
 
 export type WorkerMessage =

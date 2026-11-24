@@ -36,7 +36,7 @@ async function handleRequest(request: WorkerRequest): Promise<void> {
         post({ type: "error", message: "Input is limited to 1 MiB after UTF-8 encoding." });
         return;
       }
-      session = new WasmSession(request.source, input);
+      session = new WasmSession(request.source, input, request.maxInstructions);
       publishState(session.inspect() as ExecutionSnapshot);
       return;
     }
@@ -55,6 +55,11 @@ async function handleRequest(request: WorkerRequest): Promise<void> {
       if (!session) return;
       const result = session.runSteps(request.maxSteps ?? 500) as { executedThisBatch: number; state: ExecutionSnapshot };
       publishState(result.state);
+      return;
+    }
+    case "setBudget": {
+      if (!session) return;
+      session.setMaxInstructions(request.maxInstructions);
       return;
     }
     case "reset": {

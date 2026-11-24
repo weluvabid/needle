@@ -46,9 +46,13 @@ pub struct WasmSession {
 
 #[wasm_bindgen]
 impl WasmSession {
-    /// Parse source and create a session with the default deterministic limits.
+    /// Parse source and create a session with the selected instruction budget.
     #[wasm_bindgen(constructor)]
-    pub fn new(source: &str, input: &[u8]) -> Result<WasmSession, JsValue> {
+    pub fn new(
+        source: &str,
+        input: &[u8],
+        max_instructions: u32,
+    ) -> Result<WasmSession, JsValue> {
         if input.len() > MAX_INPUT_BYTES {
             return Err(serialize(&RuntimeError {
                 code: needle_core::RuntimeErrorCode::InputLimitExceeded,
@@ -57,9 +61,19 @@ impl WasmSession {
             }));
         }
         let program: Program = parse(source).map_err(|diagnostics| serialize(&diagnostics))?;
-        let inner = ExecutionSession::new(program, input.to_vec(), ExecutionLimits::default())
+        let mut limits = ExecutionLimits::default();
+        limits.max_instructions = u64::from(max_instructions);
+        let inner = ExecutionSession::new(program, input.to_vec(), limits)
             .map_err(|error| serialize(&error))?;
         Ok(Self { inner })
+    }
+
+    /// Change the active instruction budget without resetting the session.
+    #[wasm_bindgen(js_name = setMaxInstructions)]
+    pub fn set_max_instructions(&mut self, max_instructions: u32) -> Result<(), JsValue> {
+        self.inner
+            .set_max_instructions(u64::from(max_instructions))
+            .map_err(|error| serialize(&error))
     }
 
     /// Execute one source operation and return the compact post-step snapshot.

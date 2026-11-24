@@ -1,124 +1,125 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="needle">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#10100f" />
-    <meta name="description" content="Needle is a tiny esoteric language that compiles to Brainfuck. Write, run, inspect, and unpick each stitch." />
-    <title>Needle — a little esoteric language</title>
+    <meta name="theme-color" content="#fafaf8" />
+    <meta name="description" content="Explore Needle, a tiny language that compiles to Brainfuck. Run demanding programs and inspect the interpreter's memory, output and execution metrics." />
+    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/weluvabid/me/5a7c170096310ef6b08354fd47b66e0e168d9e4c/favicon/favicon.svg" />
+    <title>Needle — interpreter playground</title>
   </head>
   <body>
-    <div id="app">
-      <header class="topbar">
-        <a class="brand" href="#top" aria-label="Needle home">
-          <span class="brand-mark" aria-hidden="true">⌁</span>
-          <span>needle<span class="brand-period">.</span></span>
-        </a>
-        <div class="topbar-meta"><span class="status-dot"></span><span>Rust · WebAssembly · TypeScript</span></div>
-        <a class="github-link" href="https://github.com/weluvabid/needle" target="_blank" rel="noreferrer">Source <span aria-hidden="true">↗</span></a>
-      </header>
-
-      <main id="top" class="shell">
-        <section class="intro">
-          <div class="eyebrow"><span class="eyebrow-line"></span> A tiny language with a sharp point</div>
-          <h1>Make a little <em>stitch.</em></h1>
-          <p class="intro-copy">Needle is a readable esoteric language that compiles to Brainfuck. Poke the tape, run the thread, and unpick every step.</p>
-          <div class="command-key" aria-label="Needle commands">
-            <span><code>poke</code><small>+ cell</small></span>
-            <span><code>nick</code><small>− cell</small></span>
-            <span><code>next</code><small>→</small></span>
-            <span><code>back</code><small>←</small></span>
-            <span><code>loop</code><small>[</small></span>
-            <span><code>stitch</code><small>]</small></span>
-            <span><code>spill</code><small>output</small></span>
-            <span><code>snag</code><small>input</small></span>
-          </div>
+    <div class="min-h-screen bg-base-200 text-base-content">
+      <main id="top" class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 sm:px-8">
+        <section class="flex flex-col gap-3">
+          <p class="text-xs font-bold uppercase tracking-widest text-base-content/50">In-browser interpreter</p>
+          <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">A tiny language. <span class="text-primary">Unreasonable programs.</span></h1>
+          <p class="max-w-2xl text-base leading-relaxed text-base-content/70">Needle compiles readable source into Brainfuck and executes it in WebAssembly. Pick a demanding program and see what the interpreter does. <a class="link link-hover font-medium text-base-content" href="https://github.com/weluvabid/needle" target="_blank" rel="noreferrer">More on GitHub</a>.</p>
         </section>
 
-        <section class="toolbar" aria-label="Execution controls">
-          <div class="toolbar-left">
-            <button id="thread-button" class="button button-primary" type="button"><span aria-hidden="true">⌁</span> Thread It</button>
-            <button id="run-button" class="button button-run" type="button"><span aria-hidden="true">▶</span> Run the Needle</button>
-            <button id="pause-button" class="button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
-            <span class="toolbar-divider" aria-hidden="true"></span>
-            <button id="step-button" class="button" type="button" title="Execute one Needle operation"><span aria-hidden="true">▷|</span> One Stitch</button>
-            <button id="back-button" class="button button-icon" type="button" title="Unpick the previous operation" aria-label="Unpick previous operation" disabled>↶</button>
-            <button id="reset-button" class="button button-icon" type="button" title="Reset execution" aria-label="Reset execution">↺</button>
-          </div>
-          <div class="toolbar-right">
-            <label class="speed-control" for="speed-control">Pace
-              <select id="speed-control" aria-label="Execution pace">
-                <option value="slow">Careful</option>
-                <option value="steady" selected>Steady</option>
-                <option value="fast">Quick</option>
-              </select>
-            </label>
-            <span id="compile-status" class="status-label">Ready to thread</span>
-          </div>
-        </section>
-
-        <section class="workbench" aria-label="Needle editor and compiled program">
-          <article class="pane source-pane">
-            <div class="pane-header">
-              <div class="pane-title"><span class="file-icon">N</span><div><h2>Needle source</h2><p>source.needle</p></div></div>
-              <div class="pane-actions"><span id="source-count" class="mini-meta">0 lines</span><button id="clear-button" class="text-button" type="button">Clear</button></div>
+        <section class="card border border-base-300 bg-base-100 shadow-sm">
+          <div class="card-body gap-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-base-content/50">Program runner</p>
+                <h2 class="text-xl font-semibold">Choose a program</h2>
+              </div>
+              <span class="badge badge-success badge-outline">Runs locally in your browser</span>
             </div>
-            <div class="editor-shell">
-              <div id="line-numbers" class="line-numbers" aria-hidden="true">1</div>
-              <div class="editor-code">
-                <pre id="source-highlight" aria-hidden="true"></pre>
-                <textarea id="source-editor" aria-label="Needle source editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"></textarea>
+            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(5rem,1fr)_auto] sm:items-end">
+              <label class="fieldset w-full">
+                <legend class="fieldset-legend">Example program</legend>
+                <select id="example-select" class="select select-bordered w-full border-2 border-base-300 bg-base-100 text-base-content shadow-sm focus:border-base-content focus:outline-2 focus:outline-offset-2">
+                </select>
+              </label>
+              <label class="fieldset w-full">
+                <legend class="fieldset-legend">Execution pace</legend>
+                <select id="pace-select" class="select select-bordered w-full border-2 border-base-300 bg-base-100 text-base-content shadow-sm focus:border-base-content focus:outline-2 focus:outline-offset-2">
+                  <option value="very-careful" selected>Very careful · 100K instruction budget</option>
+                  <option value="careful">Careful · 1M instruction budget</option>
+                  <option value="steady">Steady · 10M instruction budget</option>
+                  <option value="fast">Fast · 60M instruction budget</option>
+                  <option value="max">Maximum · 100M instruction budget</option>
+                </select>
+              </label>
+              <button id="run-button" class="btn btn-primary min-w-32" type="button" disabled>
+                <span aria-hidden="true">▶</span> Run program
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-base-300 pt-4">
+              <p id="program-description" class="text-sm text-base-content/70">Preparing the selected program…</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="program-profile" class="badge badge-ghost">—</span>
+                <span id="budget-value" class="badge badge-outline">1M instruction budget</span>
               </div>
             </div>
-            <div id="diagnostics" class="diagnostics" aria-live="polite"><span class="diagnostics-icon">✓</span><span>No loose threads.</span></div>
-          </article>
-
-          <article class="pane compiled-pane">
-            <div class="pane-header">
-              <div class="pane-title"><span class="file-icon file-icon-bf">BF</span><div><h2>Brainfuck</h2><p>compiled output</p></div></div>
-              <div class="pane-actions"><span id="bf-count" class="mini-meta">0 instructions</span><button id="copy-bf-button" class="text-button" type="button" disabled>Copy</button></div>
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="font-semibold">Needle source</h3>
+              <span class="text-xs text-base-content/50">Read-only · current instruction highlighted</span>
             </div>
-            <div class="bf-shell">
-              <pre id="brainfuck-output" class="brainfuck-output" aria-label="Generated Brainfuck" tabindex="0"><span class="placeholder">Your compiled instructions will appear here.</span></pre>
-            </div>
-            <div class="mapping-footer"><span class="mapping-key"></span><span>Highlighted instructions map to the active Needle operation.</span></div>
-          </article>
+            <div id="source-view" class="max-h-80 overflow-auto rounded-box border border-base-300 bg-base-200 p-2 font-mono text-sm" aria-label="Read-only Needle source"></div>
+            <div id="runtime-error" class="alert alert-error hidden" role="alert"></div>
+          </div>
         </section>
 
-        <section class="lower-grid">
-          <article class="pane inspector-pane">
-            <div class="pane-header">
-              <div class="pane-title"><span class="section-mark">01</span><div><h2>The fabric</h2><p>live memory tape</p></div></div>
-              <span id="pointer-label" class="small-pill">pointer: 0</span>
-            </div>
-            <div id="tape-view" class="tape-view" aria-label="Tape cells"><div class="empty-state">Run a stitch to inspect the tape.</div></div>
-            <div class="tape-legend"><span><i class="legend-current"></i> active cell</span><span><i class="legend-zero"></i> empty cell</span></div>
-          </article>
-
-          <article class="pane output-pane">
-            <div class="pane-header">
-              <div class="pane-title"><span class="section-mark">02</span><div><h2>The spill</h2><p>program output · bytes</p></div></div>
-              <span id="output-count" class="small-pill">0 bytes</span>
-            </div>
-            <pre id="program-output" class="program-output" aria-live="polite">Nothing spilled yet.</pre>
-            <div class="input-area">
-              <label for="program-input">Input for <code>snag</code></label>
-              <textarea id="program-input" rows="2" spellcheck="false" placeholder="Bytes read by snag, in order…"></textarea>
-            </div>
-          </article>
+        <section class="grid grid-cols-2 gap-3 sm:grid-cols-5" aria-label="Execution metrics">
+          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
+            <div class="stat-title">Compiled instructions</div>
+            <div id="compiled-count" class="stat-value text-2xl tabular-nums">—</div>
+          </div>
+          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
+            <div class="stat-title">Steps executed</div>
+            <div id="steps-count" class="stat-value text-2xl tabular-nums">0</div>
+          </div>
+          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
+            <div class="stat-title">Output</div>
+            <div id="output-count" class="stat-value text-2xl tabular-nums">0 bytes</div>
+          </div>
+          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
+            <div class="stat-title">Execution time</div>
+            <div id="execution-time" class="stat-value text-2xl tabular-nums">—</div>
+          </div>
+          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
+            <div class="stat-title">Execution state</div>
+            <div class="stat-value text-lg leading-normal overflow-visible"><span id="state-value">Ready</span></div>
+            <div class="stat-desc">Pointer <span id="pointer-value" class="font-mono">0</span></div>
+          </div>
         </section>
 
-        <section class="execution-footer">
-          <div class="execution-stat"><span class="stat-label">STATE</span><strong id="state-value">Ready</strong></div>
-          <div class="execution-stat"><span class="stat-label">INSTRUCTION</span><strong id="instruction-value">—</strong></div>
-          <div class="execution-stat"><span class="stat-label">CELL VALUE</span><strong id="cell-value">0 <small>/ 255</small></strong></div>
-          <div class="execution-stat"><span class="stat-label">STEPS USED</span><strong id="steps-value">0 <small>/ 1,000,000</small></strong></div>
-          <div class="execution-stat execution-stat-wide"><span class="stat-label">EXECUTION BUDGET</span><div class="budget-track"><span id="budget-bar"></span></div></div>
+        <section class="card border border-base-300 bg-base-100 shadow-sm">
+          <div class="card-body gap-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-semibold">Program output</h3>
+                <p class="text-sm text-base-content/60">The bytes emitted by <code>spill</code>.</p>
+              </div>
+              <div id="output-tabs" role="tablist" class="tabs tabs-box">
+                <button class="tab tab-active" type="button" role="tab" aria-selected="true" data-output-format="bytes">Bytes</button>
+                <button class="tab" type="button" role="tab" aria-selected="false" data-output-format="hex">Hex</button>
+                <button class="tab" type="button" role="tab" aria-selected="false" data-output-format="ascii">ASCII</button>
+              </div>
+            </div>
+            <pre id="output-view" class="min-h-32 max-h-96 overflow-auto rounded-box border border-base-300 bg-base-200 p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap break-words" aria-live="polite">Run the selected program to see its output.</pre>
+            <div class="divider my-0"></div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-base-content/50">Runtime inspection</p>
+                <h2 class="text-xl font-semibold">Memory and output</h2>
+              </div>
+              <span id="run-status" class="badge badge-lg badge-ghost shrink-0 leading-normal">Preparing</span>
+            </div>
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="font-semibold">Memory tape</h3>
+                <span class="text-sm text-base-content/60">Active pointer highlighted</span>
+              </div>
+              <div id="tape-view" class="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-9" aria-label="Memory tape">
+                <p class="col-span-full text-sm text-base-content/50">Run a program to inspect its memory.</p>
+              </div>
+            </div>
+          </div>
         </section>
-
-        <footer class="page-footer"><span>Small language. Short thread.</span><span>Counts are compile-time repetition · cells wrap at 8 bits · EOF leaves the cell unchanged.</span></footer>
       </main>
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
