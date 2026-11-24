@@ -5,34 +5,50 @@ function inlineCssPlugin(): Plugin {
   return {
     name: "inline-build-css",
     apply: "build",
+    enforce: "post",
+
     generateBundle(_options, bundle) {
       const html = bundle["index.html"];
-      if (!html || html.type !== "asset" || typeof html.source !== "string") {
+
+      if (!html || html.type !== "asset") {
         this.error("Expected Vite to emit index.html as a text asset.");
+        return;
       }
 
-      let document = html.source;
+      let document = typeof html.source === "string"
+          ? html.source
+          : new TextDecoder().decode(html.source);
+
       const styles: string[] = [];
 
-      for (const [fileName, asset] of Object.entries(bundle)) {
-        if (asset.type !== "asset" || !fileName.endsWith(".css")) continue;
+      for (const fileName in bundle) {
+        const asset = bundle[fileName];
+
+        if (asset.type !== "asset" || !fileName.endsWith(".css")) {
+          continue;
+        }
 
         const css = typeof asset.source === "string"
-          ? asset.source
-          : new TextDecoder().decode(asset.source);
+            ? asset.source
+            : new TextDecoder().decode(asset.source);
+
         styles.push(css);
 
-        document = document.replace(/<link\b[^>]*>/g, (tag) => {
-          const href = tag.match(/\bhref=["']([^"']+)["']/)?.[1];
-          return href?.endsWith(fileName) ? "" : tag;
-        });
+        document = document.replace(
+            /<link\b[^>]*>/g,
+            (tag) => {
+              const href = tag.match(/\bhref=["']([^"']+)["']/)?.[1];
+              return href?.endsWith(fileName) ? "" : tag;
+            },
+        );
+
         delete bundle[fileName];
       }
 
       if (styles.length > 0) {
         document = document.replace(
-          "</head>",
-          `<style>${styles.join("\n")}</style>\n</head>`,
+            "</head>",
+            `<style>${styles.join("\n")}</style>\n</head>`,
         );
       }
 

@@ -48,11 +48,7 @@ pub struct WasmSession {
 impl WasmSession {
     /// Parse source and create a session with the selected instruction budget.
     #[wasm_bindgen(constructor)]
-    pub fn new(
-        source: &str,
-        input: &[u8],
-        max_instructions: u32,
-    ) -> Result<WasmSession, JsValue> {
+    pub fn new(source: &str, input: &[u8], max_instructions: u32) -> Result<WasmSession, JsValue> {
         if input.len() > MAX_INPUT_BYTES {
             return Err(serialize(&RuntimeError {
                 code: needle_core::RuntimeErrorCode::InputLimitExceeded,
@@ -61,8 +57,10 @@ impl WasmSession {
             }));
         }
         let program: Program = parse(source).map_err(|diagnostics| serialize(&diagnostics))?;
-        let mut limits = ExecutionLimits::default();
-        limits.max_instructions = u64::from(max_instructions);
+        let limits = ExecutionLimits {
+            max_instructions: u64::from(max_instructions),
+            ..ExecutionLimits::default()
+        };
         let inner = ExecutionSession::new(program, input.to_vec(), limits)
             .map_err(|error| serialize(&error))?;
         Ok(Self { inner })

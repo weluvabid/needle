@@ -677,7 +677,7 @@ mod tests {
             max_instructions: 2,
             ..ExecutionLimits::default()
         };
-        let mut vm = session("poke\\npoke\\npoke\\nspill", &[], limits);
+        let mut vm = session("poke\npoke\npoke\nspill", &[], limits);
         assert_eq!(vm.run_steps(10), 2);
         assert_eq!(vm.status(), ExecutionStatus::Failed);
 
