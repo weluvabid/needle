@@ -716,6 +716,11 @@ const exampleSelect = byId<HTMLSelectElement>("example-select");
 const paceSelect = byId<HTMLSelectElement>("pace-select");
 const sourceView = byId<HTMLDivElement>("source-view");
 const runButton = byId<HTMLButtonElement>("run-button");
+
+const runIcons = {
+  play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 12 7-12 7V5Z"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>',
+};
 const statusBadge = byId<HTMLSpanElement>("run-status");
 const description = byId<HTMLParagraphElement>("program-description");
 const profile = byId<HTMLSpanElement>("program-profile");
@@ -787,7 +792,17 @@ paceSelect.addEventListener("change", () => {
   }
 });
 
-runButton.addEventListener("click", () => startRun());
+runButton.addEventListener("click", () => {
+  if (running) {
+    stopRun();
+    finishRunTiming();
+    stateValue.textContent = "Stopped";
+    setStatus("Stopped", "neutral");
+    setRunButtonState(false);
+  } else {
+    startRun();
+  }
+});
 outputTabs.addEventListener("click", (event) => {
   const target = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-output-format]");
   if (!target) return;
@@ -812,7 +827,7 @@ worker.addEventListener("message", (event: MessageEvent<WorkerMessage>) => {
         return;
       }
       compiledCount.textContent = message.result.brainfuck.length.toLocaleString();
-      runButton.disabled = false;
+      setRunButtonState(false);
       setStatus("Compiled", "success");
       break;
     case "state":
@@ -821,19 +836,22 @@ worker.addEventListener("message", (event: MessageEvent<WorkerMessage>) => {
         batchStartedAt = 0;
       }
       renderState(message.state);
+      if (!running && message.state.status === "running") {
+        stateValue.textContent = "Stopped";
+      }
       if (running && message.state.status === "running") {
         scheduleBatch(runGeneration);
       } else if (message.state.status === "halted") {
         running = false;
         finishRunTiming();
         setStatus("Complete", "success");
-        runButton.disabled = false;
+        setRunButtonState(false);
       } else if (message.state.status === "failed") {
         running = false;
         finishRunTiming();
         setStatus("Stopped", "error");
         showError(message.state.lastError?.message ?? "Execution stopped.");
-        runButton.disabled = false;
+        setRunButtonState(false);
       }
       break;
     case "outputReset":
@@ -846,7 +864,7 @@ worker.addEventListener("message", (event: MessageEvent<WorkerMessage>) => {
     case "error":
       running = false;
       finishRunTiming();
-      runButton.disabled = false;
+      setRunButtonState(false);
       setStatus("Runtime error", "error");
       showError(message.message);
       break;
@@ -855,6 +873,7 @@ worker.addEventListener("message", (event: MessageEvent<WorkerMessage>) => {
 
 function loadExample(example: Example): void {
   stopRun();
+  setRunButtonState(false);
   selectedExample = example;
   description.textContent = example.description;
   profile.textContent = example.profile;
@@ -888,7 +907,7 @@ function startRun(): void {
   hideError();
   outputBytes = new Uint8Array();
   renderOutput();
-  runButton.disabled = true;
+  setRunButtonState(true);
   setStatus("Running", "neutral");
   executionTime.textContent = "Running…";
   batchStartedAt = 0;
@@ -935,6 +954,14 @@ function finishRunTiming(): void {
 function stopRun(): void {
   running = false;
   runGeneration += 1;
+}
+
+function setRunButtonState(isRunning: boolean): void {
+  const action = isRunning ? "Stop" : "Run";
+  runButton.disabled = !isRunning && !compiled?.ok;
+  runButton.dataset.tip = action;
+  runButton.setAttribute("aria-label", action);
+  runButton.innerHTML = isRunning ? runIcons.stop : runIcons.play;
 }
 
 function send(request: WorkerRequest): void {
@@ -1012,7 +1039,6 @@ function renderSourceLine(line: number): void {
     row.classList.toggle("border-l-2", active);
     row.classList.toggle("border-primary", active);
     row.setAttribute("aria-current", active ? "step" : "false");
-    if (active) row.scrollIntoView({ block: "nearest" });
   }
 }
 

@@ -42,9 +42,14 @@
                   <option value="max">Maximum · 100M instruction budget</option>
                 </select>
               </label>
-              <button id="run-button" class="btn btn-primary min-w-32" type="button" disabled>
-                <span aria-hidden="true">▶</span> Run program
-              </button>
+              <button
+                id="run-button"
+                class="btn btn-neutral run-button tooltip tooltip-bottom"
+                type="button"
+                data-tip="Run"
+                aria-label="Run"
+                disabled
+              ></button>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-2 border-t border-base-300 pt-4">
               <p id="program-description" class="text-sm text-base-content/70">Preparing the selected program…</p>
@@ -62,29 +67,7 @@
           </div>
         </section>
 
-        <section class="grid grid-cols-2 gap-3 sm:grid-cols-5" aria-label="Execution metrics">
-          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
-            <div class="stat-title">Compiled instructions</div>
-            <div id="compiled-count" class="stat-value text-2xl tabular-nums">—</div>
-          </div>
-          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
-            <div class="stat-title">Steps executed</div>
-            <div id="steps-count" class="stat-value text-2xl tabular-nums">0</div>
-          </div>
-          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
-            <div class="stat-title">Output</div>
-            <div id="output-count" class="stat-value text-2xl tabular-nums">0 bytes</div>
-          </div>
-          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
-            <div class="stat-title">Execution time</div>
-            <div id="execution-time" class="stat-value text-2xl tabular-nums">—</div>
-          </div>
-          <div class="stat rounded-box border border-base-300 bg-base-100 p-4">
-            <div class="stat-title">Execution state</div>
-            <div class="stat-value text-lg leading-normal overflow-visible"><span id="state-value">Ready</span></div>
-            <div class="stat-desc">Pointer <span id="pointer-value" class="font-mono">0</span></div>
-          </div>
-        </section>
+
 
         <section class="card border border-base-300 bg-base-100 shadow-sm">
           <div class="card-body gap-5">
@@ -118,6 +101,35 @@
               </div>
             </div>
           </div>
+        </section>
+        <section class="rounded-box border border-base-300 bg-base-100 px-4 py-3 sm:px-5" aria-labelledby="execution-summary-title">
+          <h2 id="execution-summary-title" class="mb-2 text-xs font-bold uppercase tracking-widest text-base-content/50">Execution summary</h2>
+          <dl class="divide-y divide-base-300 text-sm">
+            <div class="flex items-center justify-between gap-4 py-2">
+              <dt class="text-base-content/65">Compiled instructions</dt>
+              <dd id="compiled-count" class="font-mono font-semibold tabular-nums">—</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2">
+              <dt class="text-base-content/65">Steps executed</dt>
+              <dd id="steps-count" class="font-mono font-semibold tabular-nums">0</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2">
+              <dt class="text-base-content/65">Output</dt>
+              <dd id="output-count" class="font-mono font-semibold tabular-nums">0 bytes</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2">
+              <dt class="text-base-content/65">Execution time</dt>
+              <dd id="execution-time" class="font-mono font-semibold tabular-nums">—</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2">
+              <dt class="text-base-content/65">Execution state</dt>
+              <dd id="state-value" class="font-semibold">Ready</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2">
+              <dt class="text-base-content/65">Memory pointer</dt>
+              <dd id="pointer-value" class="font-mono font-semibold tabular-nums">0</dd>
+            </div>
+          </dl>
         </section>
       </main>
     </div>

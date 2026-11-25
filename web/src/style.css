@@ -60,3 +60,47 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
+
+
+/* Match the compact, high-contrast ArrayForge benchmark control. */
+.run-button {
+  display: inline-flex;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #242424;
+  border-radius: 8px;
+  background: #242424;
+  color: #fff;
+}
+
+.run-button:hover {
+  border-color: #41413e;
+  background: #41413e;
+}
+
+.run-button svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.run-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+
+/* Keep the icon control aligned with the 48px DaisyUI select fields. */
+.run-button {
+  align-self: end;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+}
